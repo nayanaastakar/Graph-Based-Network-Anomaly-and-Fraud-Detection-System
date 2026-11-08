@@ -55,14 +55,6 @@ async function captureShowcase() {
   console.log('Saved 06_tablet_responsive_view.png');
   await tabletPage.close();
 
-  // Screenshot 7: Mobile View
-  const mobilePage = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await mobilePage.goto('http://localhost:3005', { waitUntil: 'networkidle' });
-  await mobilePage.waitForTimeout(1000);
-  await mobilePage.screenshot({ path: path.join(OUTPUT_DIR, '07_mobile_responsive_view.png') });
-  console.log('Saved 07_mobile_responsive_view.png');
-  await mobilePage.close();
-
   await browser.close();
   console.log('All showcase screenshots successfully generated in docs/images!');
 }
