@@ -1,119 +1,402 @@
 import React from 'react';
+import { AlgorithmStatus, NodeData } from '../types/algorithms';
 
 interface ControlPanelProps {
-  onDetectFraudRings: () => void;
-  onRunBFS: () => void;
-  onCombinedAnalysis: () => void;
-  onDetectAnomalies: () => void;
-  isAlgorithmRunning: boolean;
-  isFraudRunning: boolean;
-  isBFSRunning: boolean;
-  isCombinedRunning: boolean;
-  isAnomalyRunning: boolean;
+  nodes: NodeData[];
   selectedNode: string | null;
+  onSelectNode: (nodeId: string | null) => void;
+
+  // Algorithm triggers
+  onRunKosaraju: () => void;
+  onRunBFS: () => void;
+  onStepBFS: () => void;
+  onPrevBFS: () => void;
+  onResetBFS: () => void;
+
+  onRunDFS: () => void;
+  onStepDFS: () => void;
+  onPrevDFS: () => void;
+  onResetDFS: () => void;
+
+  onRunAnomalies: () => void;
+  onRunCombined: () => void;
+  onResetAll: () => void;
+
+  // Statuses
+  kosarajuStatus: AlgorithmStatus;
+  bfsStatus: AlgorithmStatus;
+  dfsStatus: AlgorithmStatus;
+  anomalyStatus: AlgorithmStatus;
+  combinedStatus: AlgorithmStatus;
+
+  // Playback state
+  bfsStepIndex: number;
+  bfsTotalSteps: number;
+  isBfsPlaying: boolean;
+  onTogglePlayBFS: () => void;
+
+  dfsStepIndex: number;
+  dfsTotalSteps: number;
+  isDfsPlaying: boolean;
+  onTogglePlayDFS: () => void;
+
+  speedMs: number;
+  onChangeSpeed: (ms: number) => void;
 }
 
-const ControlPanel: React.FC<ControlPanelProps> = ({
-  onDetectFraudRings,
+export const ControlPanel: React.FC<ControlPanelProps> = ({
+  nodes,
+  selectedNode,
+  onSelectNode,
+  onRunKosaraju,
   onRunBFS,
-  onCombinedAnalysis,
-  onDetectAnomalies,
-  isAlgorithmRunning,
-  isFraudRunning,
-  isBFSRunning,
-  isCombinedRunning,
-  isAnomalyRunning,
-  selectedNode
+  onStepBFS,
+  onPrevBFS,
+  onResetBFS,
+  onRunDFS,
+  onStepDFS,
+  onPrevDFS,
+  onResetDFS,
+  onRunAnomalies,
+  onRunCombined,
+  onResetAll,
+  kosarajuStatus,
+  bfsStatus,
+  dfsStatus,
+  anomalyStatus,
+  combinedStatus,
+  bfsStepIndex,
+  bfsTotalSteps,
+  isBfsPlaying,
+  onTogglePlayBFS,
+  dfsStepIndex,
+  dfsTotalSteps,
+  isDfsPlaying,
+  onTogglePlayDFS,
+  speedMs,
+  onChangeSpeed
 }) => {
+  const isAnyRunning =
+    kosarajuStatus === 'Running' ||
+    bfsStatus === 'Running' ||
+    dfsStatus === 'Running' ||
+    anomalyStatus === 'Running' ||
+    combinedStatus === 'Running';
+
+  const getStatusBadge = (status: AlgorithmStatus) => {
+    switch (status) {
+      case 'Running':
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-900 text-blue-200 border border-blue-600 animate-pulse">RUNNING</span>;
+      case 'Completed':
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-900 text-emerald-200 border border-emerald-600">COMPLETED</span>;
+      case 'Paused':
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-900 text-amber-200 border border-amber-600">PAUSED</span>;
+      case 'Ready':
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-900 text-cyan-200 border border-cyan-600">READY</span>;
+      case 'Failed':
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-900 text-red-200 border border-red-600">FAILED</span>;
+      default:
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">NOT STARTED</span>;
+    }
+  };
+
   return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          onClick={onDetectFraudRings}
-          disabled={isFraudRunning}
-          className="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-2 rounded text-xs flex items-center justify-center"
-        >
-          <span>{isFraudRunning ? '...' : 'Fraud Rings'}</span>
-        </button>
-
-        <button
-          onClick={onRunBFS}
-          disabled={isBFSRunning}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-2 rounded text-xs flex items-center justify-center"
-        >
-          <span>{isBFSRunning ? '...' : 'BFS'}</span>
-        </button>
-
-        <button
-          onClick={onCombinedAnalysis}
-          disabled={isCombinedRunning}
-          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-2 rounded text-xs flex items-center justify-center"
-        >
-          <span>{isCombinedRunning ? '...' : 'Combined'}</span>
-        </button>
-
-        <button
-          onClick={onDetectAnomalies}
-          disabled={isAnomalyRunning}
-          className="w-full bg-amber-600 hover:bg-amber-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-2 rounded text-xs flex items-center justify-center"
-        >
-          <span>{isAnomalyRunning ? '...' : 'Anomalies'}</span>
-        </button>
+    <div className="space-y-4">
+      {/* Node Selection Selector */}
+      <div className="bg-slate-900/90 border border-slate-700/80 rounded-lg p-3">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+            <span className="text-blue-400">🎯</span> Target Account / Seed Node:
+          </label>
+          {selectedNode && (
+            <button
+              onClick={() => onSelectNode(null)}
+              className="text-[11px] text-slate-400 hover:text-white"
+            >
+              Clear Selection
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <select
+            value={selectedNode || ''}
+            onChange={(e) => onSelectNode(e.target.value || null)}
+            disabled={isAnyRunning}
+            className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500"
+          >
+            <option value="">-- Click a node on graph or select here --</option>
+            {nodes.map((n) => (
+              <option key={n.id} value={n.id}>
+                Account {n.id} (Out: {n.outDegree}, In: {n.inDegree}, Vol: ₹{n.totalAmount.toLocaleString()})
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="text-[11px] text-slate-400 mt-1.5">
+          {selectedNode
+            ? `Active seed account: ${selectedNode}. Ready for BFS/DFS exploration.`
+            : 'Select an account to start level-by-level BFS or branch-first DFS traversal.'}
+        </p>
       </div>
 
-      {!selectedNode && (
-        <div className="text-amber-400 text-sm text-center bg-amber-900/30 border border-amber-700 p-3 rounded-lg">
-          <div className="font-bold mb-1">💡 Tip: Select a Node</div>
-          <div>Click on any node in the graph to select it for BFS and Combined Analysis</div>
-          <div className="text-xs mt-1 text-amber-300">Selected nodes will show with a blue highlight</div>
-        </div>
-      )}
-
-      {selectedNode && (
-        <div className="text-emerald-400 text-sm text-center bg-emerald-900/30 border border-emerald-700 p-3 rounded-lg">
-          <div className="font-bold mb-1">✅ Node Selected</div>
-          <div>Ready to run BFS and Combined Analysis from: <span className="text-white font-mono">{selectedNode}</span></div>
-          <div className="text-xs mt-1 text-emerald-300">Click the node again to deselect</div>
-        </div>
-      )}
-
-      <div className="border-t border-slate-700 pt-4">
-        <h3 className="text-sm font-bold text-slate-300 mb-2">Algorithm Information</h3>
-        <div className="space-y-2 text-xs text-slate-400">
-          <div className="flex justify-between">
-            <span className="text-slate-500">Kosaraju's SCC:</span>
-            <span className="text-amber-400">O(V + E)</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">BFS Traversal:</span>
-            <span className="text-amber-400">O(V + E)</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">Risk Score:</span>
-            <span className="text-amber-400 text-xs">(Out-degree × 2) + (Cluster × 3) + (Amount/1000)</span>
-          </div>
+      {/* Animation Speed Controller */}
+      <div className="flex items-center justify-between bg-slate-900/70 border border-slate-800 rounded-lg px-3 py-2 text-xs">
+        <span className="text-slate-400 flex items-center gap-1">
+          <span>⏱️</span> Step Delay:
+        </span>
+        <div className="flex items-center space-x-1">
+          {[
+            { label: 'Ultra (30ms)', val: 30 },
+            { label: 'Fast (80ms)', val: 80 },
+            { label: 'Medium (200ms)', val: 200 },
+            { label: 'Slow (500ms)', val: 500 }
+          ].map((s) => (
+            <button
+              key={s.val}
+              type="button"
+              onClick={() => onChangeSpeed(s.val)}
+              className={`px-2 py-0.5 rounded text-[11px] transition-colors ${
+                speedMs === s.val ? 'bg-emerald-600 text-white font-medium' : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="border-t border-slate-700 pt-4">
-        <h3 className="text-sm font-bold text-slate-300 mb-2">Legend</h3>
-        <div className="space-y-2 text-xs">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-emerald-500 rounded-full"></div>
-            <span className="text-slate-300">Normal Account</span>
+      {/* Algorithm Card 1: Kosaraju's SCC (Fraud Rings) */}
+      <div className="bg-slate-900/80 border border-slate-700/80 rounded-xl p-3.5 space-y-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+              <span className="text-red-400">🔄</span> Kosaraju's SCC (Fraud Rings)
+            </h4>
+            <div className="text-[11px] text-slate-400">
+              Two-pass DFS algorithm to detect closed cycles and money laundering loops
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-amber-500 rounded-full"></div>
-            <span className="text-slate-300">Medium Risk</span>
+          <div>{getStatusBadge(kosarajuStatus)}</div>
+        </div>
+
+        <div className="flex items-center justify-between pt-1">
+          <div className="text-[11px] font-mono text-amber-400">Time: O(V + E) • Space: O(V + E)</div>
+          <button
+            type="button"
+            onClick={onRunKosaraju}
+            disabled={isAnyRunning || nodes.length === 0}
+            className="px-3 py-1.5 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow"
+          >
+            <span>▶ Detect Fraud Rings</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Algorithm Card 2: Breadth-First Search (BFS) */}
+      <div className="bg-slate-900/80 border border-slate-700/80 rounded-xl p-3.5 space-y-2.5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+              <span className="text-blue-400">🌊</span> Breadth-First Search (BFS)
+            </h4>
+            <div className="text-[11px] text-slate-400">
+              Level-by-level queue traversal tracing fund dispersal from seed account
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-            <span className="text-slate-300">High Risk</span>
+          <div>{getStatusBadge(bfsStatus)}</div>
+        </div>
+
+        {/* Step controls for BFS */}
+        <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-400 font-mono text-[11px]">
+              Step: {bfsStepIndex} / {Math.max(0, bfsTotalSteps - 1)}
+            </span>
+            <div className="flex items-center space-x-1">
+              <button
+                type="button"
+                onClick={onPrevBFS}
+                disabled={bfsStepIndex <= 0 || isBfsPlaying}
+                className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 rounded text-xs"
+                title="Previous step"
+              >
+                ⏮ Prev
+              </button>
+              <button
+                type="button"
+                onClick={onTogglePlayBFS}
+                disabled={!selectedNode}
+                className={`px-3 py-0.5 rounded text-xs font-semibold text-white transition-colors ${
+                  isBfsPlaying ? 'bg-amber-600 hover:bg-amber-500' : 'bg-blue-600 hover:bg-blue-500'
+                }`}
+              >
+                {isBfsPlaying ? '⏸ Pause' : '▶ Play'}
+              </button>
+              <button
+                type="button"
+                onClick={onStepBFS}
+                disabled={bfsStepIndex >= bfsTotalSteps - 1 || isBfsPlaying}
+                className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 rounded text-xs"
+                title="Next step"
+              >
+                Next ⏭
+              </button>
+              <button
+                type="button"
+                onClick={onResetBFS}
+                className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded text-xs"
+                title="Reset BFS traversal"
+              >
+                Reset
+              </button>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-            <span className="text-slate-300">Highlighted/Active</span>
+        </div>
+
+        <div className="flex items-center justify-between text-[11px]">
+          <span className="font-mono text-amber-400">Time: O(V + E) • Space: O(V)</span>
+          <button
+            type="button"
+            onClick={onRunBFS}
+            disabled={!selectedNode || isAnyRunning}
+            className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 text-white font-medium rounded transition-colors"
+          >
+            Run Full BFS
+          </button>
+        </div>
+      </div>
+
+      {/* Algorithm Card 3: Depth-First Search (DFS) */}
+      <div className="bg-slate-900/80 border border-slate-700/80 rounded-xl p-3.5 space-y-2.5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+              <span className="text-purple-400">🌲</span> Depth-First Search (DFS)
+            </h4>
+            <div className="text-[11px] text-slate-400">
+              Stack-based depth exploration examining money flow paths
+            </div>
           </div>
+          <div>{getStatusBadge(dfsStatus)}</div>
+        </div>
+
+        {/* Step controls for DFS */}
+        <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-400 font-mono text-[11px]">
+              Step: {dfsStepIndex} / {Math.max(0, dfsTotalSteps - 1)}
+            </span>
+            <div className="flex items-center space-x-1">
+              <button
+                type="button"
+                onClick={onPrevDFS}
+                disabled={dfsStepIndex <= 0 || isDfsPlaying}
+                className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 rounded text-xs"
+                title="Previous step"
+              >
+                ⏮ Prev
+              </button>
+              <button
+                type="button"
+                onClick={onTogglePlayDFS}
+                disabled={!selectedNode}
+                className={`px-3 py-0.5 rounded text-xs font-semibold text-white transition-colors ${
+                  isDfsPlaying ? 'bg-amber-600 hover:bg-amber-500' : 'bg-purple-600 hover:bg-purple-500'
+                }`}
+              >
+                {isDfsPlaying ? '⏸ Pause' : '▶ Play'}
+              </button>
+              <button
+                type="button"
+                onClick={onStepDFS}
+                disabled={dfsStepIndex >= dfsTotalSteps - 1 || isDfsPlaying}
+                className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 rounded text-xs"
+                title="Next step"
+              >
+                Next ⏭
+              </button>
+              <button
+                type="button"
+                onClick={onResetDFS}
+                className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded text-xs"
+                title="Reset DFS traversal"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-[11px]">
+          <span className="font-mono text-amber-400">Time: O(V + E) • Space: O(V)</span>
+          <button
+            type="button"
+            onClick={onRunDFS}
+            disabled={!selectedNode || isAnyRunning}
+            className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 text-white font-medium rounded transition-colors"
+          >
+            Run Full DFS
+          </button>
+        </div>
+      </div>
+
+      {/* Algorithm Card 4: Anomaly & Pattern Scanner */}
+      <div className="bg-slate-900/80 border border-slate-700/80 rounded-xl p-3.5 space-y-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+              <span className="text-amber-400">⚡</span> Network Anomaly Scanner
+            </h4>
+            <div className="text-[11px] text-slate-400">
+              Scans for disbursement star hubs, rapid aggregation funnels, and high-value single transfers
+            </div>
+          </div>
+          <div>{getStatusBadge(anomalyStatus)}</div>
+        </div>
+
+        <div className="flex items-center justify-between pt-1">
+          <div className="text-[11px] font-mono text-slate-400">Multi-Signal Graph Heuristics</div>
+          <button
+            type="button"
+            onClick={onRunAnomalies}
+            disabled={isAnyRunning || nodes.length === 0}
+            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 disabled:bg-slate-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5"
+          >
+            <span>Scan Anomalies</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Algorithm Card 5: Combined Forensic Analysis */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-700/60 rounded-xl p-3.5 space-y-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
+              <span>🛡️</span> Combined Fraud & Risk Analysis
+            </h4>
+            <div className="text-[11px] text-slate-400">
+              Combines Kosaraju SCC, reachable BFS propagation, and Priority Queue scoring
+            </div>
+          </div>
+          <div>{getStatusBadge(combinedStatus)}</div>
+        </div>
+
+        <div className="flex items-center justify-between pt-1">
+          <button
+            type="button"
+            onClick={onResetAll}
+            className="text-[11px] text-slate-400 hover:text-slate-200 underline"
+          >
+            Reset All Results
+          </button>
+          <button
+            type="button"
+            onClick={onRunCombined}
+            disabled={!selectedNode || isAnyRunning}
+            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white text-xs font-bold rounded-lg transition-colors shadow-lg shadow-indigo-950/60"
+          >
+            🚀 Run Combined Analysis
+          </button>
         </div>
       </div>
     </div>

@@ -1,118 +1,71 @@
 import React from 'react';
-
-interface BFSStep {
-  step: number;
-  queue: string[];
-  visited: string[];
-  description: string;
-}
+import { BFSStep } from '../types/algorithms';
 
 interface BFSTableProps {
   steps: BFSStep[];
+  currentStepIndex?: number;
 }
 
-const BFSTable: React.FC<BFSTableProps> = ({ steps }) => {
+export const BFSTable: React.FC<BFSTableProps> = ({ steps, currentStepIndex = 0 }) => {
   if (steps.length === 0) {
     return (
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-4">
-        <h3 className="text-lg font-bold mb-3 text-emerald-400">BFS Step Table</h3>
-        <div className="text-slate-500 text-center py-4 text-sm">
-          Run BFS to see step-by-step visualization
-        </div>
+      <div className="bg-slate-900 border border-slate-700/80 rounded-xl p-4 text-center">
+        <h4 className="text-xs font-bold text-emerald-400 mb-1">BFS Step Table</h4>
+        <div className="text-slate-500 text-xs">Run BFS to inspect level-by-level queue operations.</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-xl p-4">
-      <h3 className="text-lg font-bold mb-3 text-emerald-400">BFS Step Table</h3>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="bg-slate-800 border-b border-slate-700">
-              <th className="px-3 py-2 text-left text-emerald-400 font-semibold">Step</th>
-              <th className="px-3 py-2 text-left text-emerald-400 font-semibold">Queue</th>
-              <th className="px-3 py-2 text-left text-emerald-400 font-semibold">Visited</th>
-              <th className="px-3 py-2 text-left text-emerald-400 font-semibold">Status</th>
+    <div className="bg-slate-900 border border-slate-700/80 rounded-xl p-3 shadow-md space-y-2">
+      <div className="flex items-center justify-between">
+        <h4 className="text-xs font-bold text-emerald-400">BFS Step-by-Step Execution Table</h4>
+        <span className="text-[10px] text-slate-400 font-mono">
+          Step {currentStepIndex} of {steps.length - 1}
+        </span>
+      </div>
+
+      <div className="max-h-48 overflow-y-auto border border-slate-800 rounded-lg scrollbar-thin scrollbar-thumb-slate-700">
+        <table className="w-full text-xs text-left">
+          <thead className="bg-slate-800 text-slate-300 sticky top-0 text-[11px] font-semibold border-b border-slate-700">
+            <tr>
+              <th className="py-1 px-2">Step</th>
+              <th className="py-1 px-2">Level</th>
+              <th className="py-1 px-2">Current Vertex</th>
+              <th className="py-1 px-2">Queue (FIFO)</th>
+              <th className="py-1 px-2">Visited Set</th>
+              <th className="py-1 px-2">Action</th>
             </tr>
           </thead>
-          <tbody>
-            {steps.map((step, index) => (
-              <tr 
-                key={index} 
-                className={`border-b border-slate-700 ${
-                  step.description === 'End' ? 'bg-green-900/30' : 
-                  step.description === 'Start' ? 'bg-blue-900/30' : 'bg-slate-800'
+          <tbody className="divide-y divide-slate-800 font-mono text-[11px]">
+            {steps.map((st, idx) => (
+              <tr
+                key={st.step}
+                className={`transition-colors ${
+                  idx === currentStepIndex
+                    ? 'bg-blue-950/70 border-l-4 border-blue-500 font-semibold'
+                    : idx % 2 === 0
+                    ? 'bg-slate-900/40'
+                    : 'bg-slate-900/80'
                 }`}
               >
-                <td className="px-3 py-2 text-slate-300 font-medium">
-                  {step.description}
-                </td>
-                <td className="px-3 py-2">
-                  <div className="flex flex-wrap gap-1">
-                    {step.queue.length === 0 ? (
-                      <span className="text-slate-500 italic">[]</span>
-                    ) : (
-                      step.queue.map((node, idx) => (
-                        <span 
-                          key={idx} 
-                          className="px-2 py-1 bg-amber-900 border border-amber-600 rounded text-amber-300 font-mono text-xs"
-                        >
-                          {node}
-                        </span>
-                      ))
-                    )}
-                  </div>
-                </td>
-                <td className="px-3 py-2">
-                  <div className="flex flex-wrap gap-1">
-                    {step.visited.length === 0 ? (
-                      <span className="text-slate-500 italic">∅</span>
-                    ) : (
-                      step.visited.map((node, idx) => (
-                        <span 
-                          key={idx} 
-                          className="px-2 py-1 bg-emerald-900 border border-emerald-600 rounded text-emerald-300 font-mono text-xs"
-                        >
-                          {node}
-                        </span>
-                      ))
-                    )}
-                  </div>
-                </td>
-                <td className="px-3 py-2">
-                  {step.description === 'End' && (
-                    <span className="px-2 py-1 bg-green-800 border border-green-600 rounded text-green-300 text-xs font-semibold">
-                      ✅ Complete
-                    </span>
-                  )}
-                  {step.description === 'Start' && (
-                    <span className="px-2 py-1 bg-blue-800 border border-blue-600 rounded text-blue-300 text-xs font-semibold">
-                      🚀 Start
-                    </span>
-                  )}
-                  {step.description !== 'End' && step.description !== 'Start' && (
-                    <span className="px-2 py-1 bg-slate-700 border border-slate-600 rounded text-slate-300 text-xs">
-                      🔄 Processing
-                    </span>
+                <td className="py-1 px-2 text-slate-400">{st.step}</td>
+                <td className="py-1 px-2 text-amber-400">{st.level}</td>
+                <td className="py-1 px-2 text-cyan-300 font-bold">{st.currentNode || '—'}</td>
+                <td className="py-1 px-2">
+                  {st.queue.length === 0 ? (
+                    <span className="text-slate-600 font-sans italic">[]</span>
+                  ) : (
+                    <span className="text-blue-300 font-bold">[{st.queue.join(', ')}]</span>
                   )}
                 </td>
+                <td className="py-1 px-2 text-emerald-400">[{st.visited.join(', ')}]</td>
+                <td className="py-1 px-2 font-sans text-slate-300 text-[10px]">{st.description}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      
-      {steps.length > 0 && (
-        <div className="mt-4 p-3 bg-slate-800 rounded-lg">
-          <div className="text-xs text-slate-400">
-            <div className="mb-1 font-semibold text-emerald-400">Summary:</div>
-            <div>• Total Steps: {steps.length}</div>
-            <div>• Final Queue: {steps[steps.length - 1]?.queue.length === 0 ? 'Empty' : `[${steps[steps.length - 1]?.queue.join(', ')}]`}</div>
-            <div>• All Visited: [{steps[steps.length - 1]?.visited.join(', ')}]</div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -82,3 +82,7 @@ jspm_packages/
 
 # DynamoDB Local files
 .dynamodb/
+
+# TypeScript and test artifacts
+*.tsbuildinfo
+dist_test/

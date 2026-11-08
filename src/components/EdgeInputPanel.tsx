@@ -1,310 +1,358 @@
-import React, { useState } from 'react';
-
-interface Edge {
-  source: string;
-  target: string;
-  amount: number;
-}
+import React, { useState, useEffect } from 'react';
+import { RawTransaction } from '../types/algorithms';
 
 interface EdgeInputPanelProps {
-  onEdgesSubmit: (edges: Edge[]) => void;
+  transactions: RawTransaction[];
+  onBuildGraph: (transactions: RawTransaction[]) => void;
+  onLoadExample: () => void;
+  onClear: () => void;
   isAlgorithmRunning: boolean;
 }
 
-const EdgeInputPanel: React.FC<EdgeInputPanelProps> = ({ onEdgesSubmit, isAlgorithmRunning }) => {
-  const [inputMode, setInputMode] = useState<'text' | 'table'>('table');
-  const [inputText, setInputText] = useState(
-    `A B 5000
-B C 2000
-C A 7000
-D E 1000
-A2 A3 15000
-A3 A4 12000
-A4 A2 18000`
-  );
-  
-  const [tableRows, setTableRows] = useState<Edge[]>([
-    { source: 'A', target: 'B', amount: 5000 },
-    { source: 'B', target: 'C', amount: 2000 },
-    { source: 'C', target: 'A', amount: 7000 },
-    { source: 'D', target: 'E', amount: 1000 },
-    { source: 'A2', target: 'A3', amount: 15000 },
-  ]);
-  
-  const [parseError, setParseError] = useState<string>('');
+export const EdgeInputPanel: React.FC<EdgeInputPanelProps> = ({
+  transactions,
+  onBuildGraph,
+  onLoadExample,
+  onClear,
+  isAlgorithmRunning
+}) => {
+  const [inputMode, setInputMode] = useState<'table' | 'text'>('table');
+  const [tableRows, setTableRows] = useState<Array<{ source: string; target: string; amount: string }>>([]);
+  const [inputText, setInputText] = useState<string>('');
+  const [validationError, setValidationError] = useState<string>('');
+  const [successNotice, setSuccessNotice] = useState<string>('');
 
-  const parseEdges = (text: string): Edge[] => {
+  // Synchronize when transactions prop updates (e.g. from Load Example or Clear)
+  useEffect(() => {
+    setTableRows(
+      transactions.map((tx) => ({
+        source: tx.source,
+        target: tx.target,
+        amount: tx.amount.toString()
+      }))
+    );
+    setInputText(
+      transactions.map((tx) => `${tx.source} ${tx.target} ${tx.amount}`).join('\n')
+    );
+    setValidationError('');
+  }, [transactions]);
+
+  // Convert table rows to text
+  const syncTableToText = (rows: Array<{ source: string; target: string; amount: string }>) => {
+    return rows
+      .filter((r) => r.source.trim() || r.target.trim() || r.amount.trim())
+      .map((r) => `${r.source.trim()} ${r.target.trim()} ${r.amount.trim()}`)
+      .join('\n');
+  };
+
+  // Convert text to table rows
+  const syncTextToTable = (text: string) => {
     const lines = text.trim().split('\n');
-    const edges: Edge[] = [];
-    
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-      if (!trimmedLine || trimmedLine.startsWith('#')) continue;
-      
-      const parts = trimmedLine.split(/\s+/);
-      if (parts.length !== 3) {
-        throw new Error(`Invalid format on line: "${line}". Expected: Source Destination Amount`);
+    const rows: Array<{ source: string; target: string; amount: string }> = [];
+    lines.forEach((line) => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) return;
+      const parts = trimmed.split(/\s+/);
+      if (parts.length >= 3) {
+        rows.push({
+          source: parts[0],
+          target: parts[1],
+          amount: parts[2]
+        });
+      } else if (parts.length === 2) {
+        rows.push({
+          source: parts[0],
+          target: parts[1],
+          amount: ''
+        });
+      } else if (parts.length === 1 && parts[0]) {
+        rows.push({
+          source: parts[0],
+          target: '',
+          amount: ''
+        });
       }
-      
-      const [source, target, amountStr] = parts;
-      const amount = parseFloat(amountStr);
-      
-      if (isNaN(amount) || amount <= 0) {
-        throw new Error(`Invalid amount on line: "${line}". Amount must be a positive number`);
-      }
-      
-      edges.push({ source, target, amount });
-    }
-    
-    return edges;
+    });
+    return rows;
   };
 
-  const handleTextSubmit = () => {
+  const handleSwitchMode = (mode: 'table' | 'text') => {
+    if (mode === inputMode) return;
+    setValidationError('');
+
+    if (mode === 'text') {
+      // Sync table to text
+      setInputText(syncTableToText(tableRows));
+    } else {
+      // Sync text to table
+      const newRows = syncTextToTable(inputText);
+      setTableRows(newRows.length > 0 ? newRows : [{ source: '', target: '', amount: '' }]);
+    }
+    setInputMode(mode);
+  };
+
+  const parseAndValidateTransactions = (): RawTransaction[] => {
+    const parsed: RawTransaction[] = [];
+
+    if (inputMode === 'table') {
+      const activeRows = tableRows.filter((r) => r.source.trim() || r.target.trim() || r.amount.trim());
+      if (activeRows.length === 0) {
+        throw new Error('Please add at least one transaction row before building graph.');
+      }
+
+      activeRows.forEach((row, idx) => {
+        const s = row.source.trim().toUpperCase();
+        const t = row.target.trim().toUpperCase();
+        const amtStr = row.amount.trim();
+
+        if (!s) {
+          throw new Error(`Row #${idx + 1}: Source account ID is required.`);
+        }
+        if (!t) {
+          throw new Error(`Row #${idx + 1}: Target account ID is required.`);
+        }
+        const amt = parseFloat(amtStr);
+        if (isNaN(amt) || amt <= 0) {
+          throw new Error(`Row #${idx + 1} (${s} → ${t}): Amount must be a positive number greater than 0.`);
+        }
+
+        parsed.push({ source: s, target: t, amount: amt });
+      });
+    } else {
+      const lines = inputText.trim().split('\n');
+      if (lines.length === 0 || !inputText.trim()) {
+        throw new Error('Transaction text is empty. Enter at least one transaction: Source Target Amount');
+      }
+
+      lines.forEach((line, idx) => {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) return;
+
+        const parts = trimmed.split(/\s+/);
+        if (parts.length !== 3) {
+          throw new Error(
+            `Line ${idx + 1} ("${trimmed}"): Invalid format. Expected 3 space-separated tokens: Source Target Amount (e.g., A1 A2 5000)`
+          );
+        }
+
+        const [sRaw, tRaw, amtStr] = parts;
+        const s = sRaw.trim().toUpperCase();
+        const t = tRaw.trim().toUpperCase();
+        const amt = parseFloat(amtStr);
+
+        if (!s || !t) {
+          throw new Error(`Line ${idx + 1}: Source and Target accounts cannot be empty.`);
+        }
+        if (isNaN(amt) || amt <= 0) {
+          throw new Error(`Line ${idx + 1} ("${trimmed}"): Amount must be a valid positive number.`);
+        }
+
+        parsed.push({ source: s, target: t, amount: amt });
+      });
+    }
+
+    if (parsed.length === 0) {
+      throw new Error('No valid transactions found to build network graph.');
+    }
+
+    return parsed;
+  };
+
+  const handleBuildGraph = () => {
     try {
-      setParseError('');
-      const edges = parseEdges(inputText);
-      onEdgesSubmit(edges);
-    } catch (error) {
-      setParseError(error instanceof Error ? error.message : 'Unknown error occurred');
+      setValidationError('');
+      setSuccessNotice('');
+      const validTransactions = parseAndValidateTransactions();
+      onBuildGraph(validTransactions);
+      setSuccessNotice(`Successfully synchronized graph with ${validTransactions.length} transactions.`);
+      setTimeout(() => setSuccessNotice(''), 3000);
+    } catch (err: any) {
+      setValidationError(err.message || 'Failed to parse transactions.');
     }
   };
 
-  const handleTableSubmit = () => {
-    try {
-      setParseError('');
-      
-      // Validate table data
-      const validEdges = tableRows.filter(row => 
-        row.source.trim() && 
-        row.target.trim() && 
-        row.amount > 0
-      );
-      
-      if (validEdges.length === 0) {
-        throw new Error('Please add at least one valid transaction');
-      }
-      
-      onEdgesSubmit(validEdges);
-    } catch (error) {
-      setParseError(error instanceof Error ? error.message : 'Unknown error occurred');
-    }
+  const handleAddRow = () => {
+    setTableRows([...tableRows, { source: '', target: '', amount: '' }]);
   };
 
-  const handleClear = () => {
-    if (inputMode === 'text') {
-      setInputText('');
-    } else {
-      setTableRows([]);
-    }
-    setParseError('');
+  const handleUpdateRow = (index: number, field: 'source' | 'target' | 'amount', value: string) => {
+    const updated = [...tableRows];
+    updated[index][field] = value;
+    setTableRows(updated);
   };
 
-  const handleLoadExample = () => {
-    const exampleEdges = [
-      { source: 'A', target: 'B', amount: 5000 },
-      { source: 'B', target: 'C', amount: 2000 },
-      { source: 'C', target: 'A', amount: 7000 },
-      { source: 'D', target: 'E', amount: 1000 },
-      { source: 'A2', target: 'A3', amount: 15000 },
-      { source: 'A3', target: 'A4', amount: 12000 },
-      { source: 'A4', target: 'A2', amount: 18000 },
-      { source: 'A2', target: 'A5', amount: 8000 },
-      { source: 'A3', target: 'A1', amount: 10000 },
-      { source: 'A4', target: 'A7', amount: 7000 },
-    ];
-
-    if (inputMode === 'text') {
-      const exampleText = exampleEdges.map(edge => 
-        `${edge.source} ${edge.target} ${edge.amount}`
-      ).join('\n');
-      setInputText(exampleText);
-    } else {
-      setTableRows(exampleEdges);
-    }
-  };
-
-  const addTableRow = () => {
-    setTableRows([...tableRows, { source: '', target: '', amount: 0 }]);
-  };
-
-  const updateTableRow = (index: number, field: keyof Edge, value: string | number) => {
-    const updatedRows = [...tableRows];
-    if (field === 'amount') {
-      updatedRows[index][field] = parseFloat(value as string) || 0;
-    } else {
-      updatedRows[index][field] = value as string;
-    }
-    setTableRows(updatedRows);
-  };
-
-  const removeTableRow = (index: number) => {
-    setTableRows(tableRows.filter((_, i) => i !== index));
+  const handleRemoveRow = (index: number) => {
+    const updated = tableRows.filter((_, i) => i !== index);
+    setTableRows(updated.length > 0 ? updated : [{ source: '', target: '', amount: '' }]);
   };
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-bold text-slate-100">Transaction Input</h3>
-        <div className="flex space-x-2">
+    <div className="space-y-3">
+      {/* Header with Mode Toggle & Actions */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center space-x-1 bg-slate-900/90 border border-slate-700 rounded-lg p-0.5 text-xs">
           <button
-            onClick={handleLoadExample}
+            type="button"
+            onClick={() => handleSwitchMode('table')}
+            className={`px-3 py-1 rounded transition-colors font-medium ${
+              inputMode === 'table' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Table Editor
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSwitchMode('text')}
+            className={`px-3 py-1 rounded transition-colors font-medium ${
+              inputMode === 'text' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Raw Text
+          </button>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={onLoadExample}
             disabled={isAlgorithmRunning}
-            className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-600 text-white text-sm rounded-lg transition-colors duration-200"
+            className="px-2.5 py-1 text-xs bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white rounded font-medium transition-colors"
+            title="Load default canonical fraud ring & network dataset"
           >
             Load Example
           </button>
           <button
-            onClick={handleClear}
+            type="button"
+            onClick={() => {
+              onClear();
+              setTableRows([{ source: '', target: '', amount: '' }]);
+              setInputText('');
+              setValidationError('');
+            }}
             disabled={isAlgorithmRunning}
-            className="px-3 py-1 bg-slate-600 hover:bg-slate-700 disabled:bg-slate-600 text-white text-sm rounded-lg transition-colors duration-200"
+            className="px-2.5 py-1 text-xs bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 text-slate-300 rounded transition-colors"
+            title="Clear all transactions"
           >
             Clear
           </button>
         </div>
       </div>
 
-      {/* Input Mode Toggle */}
-      <div className="flex space-x-2 mb-4">
-        <button
-          onClick={() => setInputMode('table')}
-          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-200 ${
-            inputMode === 'table'
-              ? 'bg-emerald-600 text-white'
-              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-          }`}
-        >
-          Table Format
-        </button>
-        <button
-          onClick={() => setInputMode('text')}
-          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-200 ${
-            inputMode === 'text'
-              ? 'bg-emerald-600 text-white'
-              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-          }`}
-        >
-          Text Format
-        </button>
-      </div>
+      {/* Validation or Success Alert */}
+      {validationError && (
+        <div className="p-2.5 bg-red-950/80 border border-red-700 rounded-lg text-red-200 text-xs flex items-start justify-between">
+          <span>⚠️ {validationError}</span>
+          <button onClick={() => setValidationError('')} className="text-red-400 hover:text-red-200 ml-2 font-bold">
+            ✕
+          </button>
+        </div>
+      )}
+      {successNotice && (
+        <div className="p-2.5 bg-emerald-950/80 border border-emerald-700 rounded-lg text-emerald-200 text-xs">
+          ✓ {successNotice}
+        </div>
+      )}
 
+      {/* Mode 1: Table Editor */}
       {inputMode === 'table' ? (
-        /* Table Input Mode */
-        <div className="space-y-4">
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Enter transactions in table format:
-            </label>
-            <div className="max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 hover:scrollbar-thumb-slate-500">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-700 sticky top-0">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-slate-300 font-medium">Source</th>
-                    <th className="px-3 py-2 text-left text-slate-300 font-medium">Target</th>
-                    <th className="px-3 py-2 text-left text-slate-300 font-medium">Amount</th>
-                    <th className="px-3 py-2 text-center text-slate-300 font-medium">Action</th>
+        <div className="space-y-2">
+          <div className="max-h-56 overflow-y-auto border border-slate-700/80 rounded-lg bg-slate-900/60 scrollbar-thin scrollbar-thumb-slate-700">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-slate-800/90 text-slate-300 sticky top-0 border-b border-slate-700 z-10">
+                <tr>
+                  <th className="py-1.5 px-2 font-semibold">#</th>
+                  <th className="py-1.5 px-2 font-semibold">Source Account</th>
+                  <th className="py-1.5 px-2 font-semibold">Target Account</th>
+                  <th className="py-1.5 px-2 font-semibold">Amount (₹)</th>
+                  <th className="py-1.5 px-2 text-center font-semibold">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/80">
+                {tableRows.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-slate-800/40 transition-colors">
+                    <td className="py-1 px-2 text-slate-500 font-mono text-[11px]">{idx + 1}</td>
+                    <td className="py-1 px-2">
+                      <input
+                        type="text"
+                        value={row.source}
+                        placeholder="e.g. A1"
+                        onChange={(e) => handleUpdateRow(idx, 'source', e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-100 font-mono text-xs focus:outline-none focus:border-emerald-500 uppercase"
+                      />
+                    </td>
+                    <td className="py-1 px-2">
+                      <input
+                        type="text"
+                        value={row.target}
+                        placeholder="e.g. A2"
+                        onChange={(e) => handleUpdateRow(idx, 'target', e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-100 font-mono text-xs focus:outline-none focus:border-emerald-500 uppercase"
+                      />
+                    </td>
+                    <td className="py-1 px-2">
+                      <input
+                        type="number"
+                        min="1"
+                        step="any"
+                        value={row.amount}
+                        placeholder="e.g. 5000"
+                        onChange={(e) => handleUpdateRow(idx, 'amount', e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-emerald-400 font-mono text-xs focus:outline-none focus:border-emerald-500"
+                      />
+                    </td>
+                    <td className="py-1 px-2 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveRow(idx)}
+                        className="text-red-400 hover:text-red-300 hover:bg-red-950/60 p-1 rounded transition-colors text-xs"
+                        title="Remove transaction"
+                      >
+                        ✕
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {tableRows.map((row, index) => (
-                    <tr key={index} className="border-b border-slate-700">
-                      <td className="px-3 py-2">
-                        <input
-                          type="text"
-                          value={row.source}
-                          onChange={(e) => updateTableRow(index, 'source', e.target.value)}
-                          disabled={isAlgorithmRunning}
-                          className="w-full px-2 py-1 bg-slate-900 border border-slate-600 rounded text-slate-100 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
-                          placeholder="Node A"
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <input
-                          type="text"
-                          value={row.target}
-                          onChange={(e) => updateTableRow(index, 'target', e.target.value)}
-                          disabled={isAlgorithmRunning}
-                          className="w-full px-2 py-1 bg-slate-900 border border-slate-600 rounded text-slate-100 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
-                          placeholder="Node B"
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <input
-                          type="number"
-                          value={row.amount}
-                          onChange={(e) => updateTableRow(index, 'amount', e.target.value)}
-                          disabled={isAlgorithmRunning}
-                          className="w-full px-2 py-1 bg-slate-900 border border-slate-600 rounded text-slate-100 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
-                          placeholder="0"
-                          min="0"
-                          step="0.01"
-                        />
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <button
-                          onClick={() => removeTableRow(index)}
-                          disabled={isAlgorithmRunning}
-                          className="px-2 py-1 bg-red-600 hover:bg-red-700 disabled:bg-slate-600 text-white text-xs rounded transition-colors duration-200"
-                        >
-                          Remove
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex items-center justify-between pt-1">
             <button
-              onClick={addTableRow}
-              disabled={isAlgorithmRunning}
-              className="mt-3 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-600 text-white text-sm rounded-lg transition-colors duration-200"
+              type="button"
+              onClick={handleAddRow}
+              className="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-600/30 rounded font-medium transition-colors"
             >
               + Add Transaction
             </button>
+            <span className="text-[11px] text-slate-500">{tableRows.length} transactions in table</span>
           </div>
         </div>
       ) : (
-        /* Text Input Mode */
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-slate-300 mb-2">
-            Enter transactions (Source Destination Amount):
-          </label>
+        /* Mode 2: Raw Text Editor */
+        <div className="space-y-2">
           <textarea
+            rows={7}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            disabled={isAlgorithmRunning}
-            className="w-full h-64 px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-slate-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-            placeholder="A B 5000&#10;B C 2000&#10;C A 7000"
-            spellCheck={false}
+            placeholder={`A1 A2 15000\nA2 A3 12000\nA3 A1 18000\n# Format: Source Target Amount`}
+            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 font-mono text-xs text-slate-200 focus:outline-none focus:border-emerald-500 scrollbar-thin scrollbar-thumb-slate-700 resize-y"
           />
+          <div className="text-[11px] text-slate-400">
+            Format: <code className="text-emerald-400">Source Target Amount</code> per line (e.g.{' '}
+            <code className="text-slate-300">A1 A2 5000</code>). Lines starting with # are comments.
+          </div>
         </div>
       )}
 
-      {parseError && (
-        <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg">
-          <p className="text-red-300 text-sm">{parseError}</p>
-        </div>
-      )}
-
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-slate-400">
-          {inputMode === 'table' ? (
-            <p>Enter source, target, and amount for each transaction</p>
-          ) : (
-            <>
-              <p>Format: Source Destination Amount</p>
-              <p>Lines starting with # are ignored</p>
-            </>
-          )}
-        </div>
-        <button
-          onClick={inputMode === 'table' ? handleTableSubmit : handleTextSubmit}
-          disabled={isAlgorithmRunning || (inputMode === 'table' ? tableRows.length === 0 : !inputText.trim())}
-          className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
-        >
-          {isAlgorithmRunning ? 'Processing...' : 'Build Graph'}
-        </button>
-      </div>
+      {/* Build Graph Primary CTA */}
+      <button
+        type="button"
+        onClick={handleBuildGraph}
+        disabled={isAlgorithmRunning}
+        className="w-full py-2 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white font-semibold rounded-lg text-xs tracking-wide transition-colors flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50"
+      >
+        <span>⚡ Synchronize & Build Graph</span>
+      </button>
     </div>
   );
 };
