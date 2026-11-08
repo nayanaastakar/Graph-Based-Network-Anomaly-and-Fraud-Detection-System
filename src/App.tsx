@@ -553,90 +553,90 @@ function App() {
 
       {/* Top KPI Summary Metrics Cards */}
       <section className="bg-slate-900/40 border-b border-slate-800/80 px-4 py-3 shrink-0">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
           {/* Card 1: Total Accounts */}
           <div
-            className="bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all rounded-xl p-3 flex flex-col justify-between shadow-sm cursor-help"
+            className="h-full min-h-[96px] sm:min-h-[104px] bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all rounded-xl p-2.5 sm:p-3 flex flex-col justify-between shadow-sm cursor-help"
             title="Total Accounts (|V|): Count of distinct account entities transacting in the directed graph."
           >
-            <div className="text-[11px] font-medium text-slate-400 flex items-center justify-between">
+            <div className="text-[10px] sm:text-[11px] font-medium text-slate-400 flex items-center justify-between">
               <span>Total Accounts (|V|)</span>
-              <span className="text-emerald-400 font-mono">Nodes</span>
+              <span className="text-emerald-400 font-mono text-[10px]">Nodes</span>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-slate-100 font-mono mt-1">
+            <div className="text-lg sm:text-2xl font-extrabold text-slate-100 font-mono mt-1">
               {graphData.nodes.length}
             </div>
-            <div className="text-[10px] text-slate-500 mt-0.5">Participating account entities</div>
+            <div className="text-[9px] sm:text-[10px] text-slate-500 mt-0.5 truncate">Participating accounts</div>
           </div>
 
           {/* Card 2: Total Transactions */}
           <div
-            className="bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all rounded-xl p-3 flex flex-col justify-between shadow-sm cursor-help"
+            className="h-full min-h-[96px] sm:min-h-[104px] bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all rounded-xl p-2.5 sm:p-3 flex flex-col justify-between shadow-sm cursor-help"
             title="Transactions (|E|): Total directed monetary transfer edges connecting account pairs."
           >
-            <div className="text-[11px] font-medium text-slate-400 flex items-center justify-between">
+            <div className="text-[10px] sm:text-[11px] font-medium text-slate-400 flex items-center justify-between">
               <span>Transactions (|E|)</span>
-              <span className="text-blue-400 font-mono">Edges</span>
+              <span className="text-blue-400 font-mono text-[10px]">Edges</span>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-slate-100 font-mono mt-1">
+            <div className="text-lg sm:text-2xl font-extrabold text-slate-100 font-mono mt-1">
               {graphData.edges.length}
             </div>
-            <div className="text-[10px] text-slate-500 mt-0.5">Directed financial transfers</div>
+            <div className="text-[9px] sm:text-[10px] text-slate-500 mt-0.5 truncate">Directed transfers</div>
           </div>
 
           {/* Card 3: High-Risk Accounts */}
           <div
-            className="bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all rounded-xl p-3 flex flex-col justify-between shadow-sm cursor-help"
+            className="h-full min-h-[96px] sm:min-h-[104px] bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all rounded-xl p-2.5 sm:p-3 flex flex-col justify-between shadow-sm cursor-help"
             title="High-Risk Accounts: Accounts with calculated Risk Score ≥ 25.0 based on OutDegree, SCC ClusterSize, and OutAmount."
           >
-            <div className="text-[11px] font-medium text-slate-400 flex items-center justify-between">
+            <div className="text-[10px] sm:text-[11px] font-medium text-slate-400 flex items-center justify-between">
               <span>High-Risk Accounts</span>
-              <span className="text-red-400 font-mono text-[10px] bg-red-950/60 px-1 py-0.5 rounded border border-red-800">
+              <span className="text-red-400 font-mono text-[9px] sm:text-[10px] bg-red-950/60 px-1 py-0.5 rounded border border-red-800">
                 Score ≥ 25.0
               </span>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-red-400 font-mono mt-1">
+            <div className="text-lg sm:text-2xl font-extrabold text-red-400 font-mono mt-1">
               {highRiskCount}
             </div>
-            <div className="text-[10px] text-slate-400 mt-0.5 font-mono">
+            <div className="text-[9px] sm:text-[10px] text-slate-400 mt-0.5 font-mono truncate">
               Accounts: A1, A2, A3, A4, A7
             </div>
           </div>
 
           {/* Card 4: Detected Suspicious Patterns */}
           <div
-            className="bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all rounded-xl p-3 flex flex-col justify-between shadow-sm cursor-help"
+            className="h-full min-h-[96px] sm:min-h-[104px] bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all rounded-xl p-2.5 sm:p-3 flex flex-col justify-between shadow-sm cursor-help"
             title="Suspicious Patterns: De-duplicated count of SCC-detected fraud rings + heuristic scanner anomalies (Disbursement Hubs, Aggregation Funnels, High-Value Flows)."
           >
-            <div className="text-[11px] font-medium text-slate-400 flex items-center justify-between">
+            <div className="text-[10px] sm:text-[11px] font-medium text-slate-400 flex items-center justify-between">
               <span>Suspicious Patterns</span>
-              <span className="text-amber-400 font-mono text-[10px] bg-amber-950/60 px-1 py-0.5 rounded border border-amber-800">
-                Distinct Signals
+              <span className="text-amber-400 font-mono text-[9px] sm:text-[10px] bg-amber-950/60 px-1 py-0.5 rounded border border-amber-800">
+                Signals
               </span>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-amber-300 font-mono mt-1">
+            <div className="text-lg sm:text-2xl font-extrabold text-amber-300 font-mono mt-1">
               {detectedPatternsCount}
             </div>
-            <div className="text-[10px] text-slate-400 mt-0.5">
+            <div className="text-[9px] sm:text-[10px] text-slate-400 mt-0.5 truncate">
               {sccs.filter((s) => s.nodes.length >= 2).length > 0 || anomalies.length > 0
-                ? `${sccs.filter((s) => s.nodes.length >= 2).length} Fraud Ring (SCC) • ${anomalies.length} Scanner Anom.`
+                ? `${sccs.filter((s) => s.nodes.length >= 2).length} Ring (SCC) • ${anomalies.length} Anom.`
                 : 'Run SCC or Scanner to detect'}
             </div>
           </div>
 
           {/* Card 5: Total Transaction Volume */}
           <div
-            className="col-span-2 sm:col-span-1 bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all rounded-xl p-3 flex flex-col justify-between shadow-sm cursor-help"
+            className="col-span-2 sm:col-span-1 h-full min-h-[96px] sm:min-h-[104px] bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all rounded-xl p-2.5 sm:p-3 flex flex-col justify-between shadow-sm cursor-help"
             title="Total Transaction Volume: Aggregate sum of all directed transfers across the network in Indian Rupee (₹)."
           >
-            <div className="text-[11px] font-medium text-slate-400 flex items-center justify-between">
+            <div className="text-[10px] sm:text-[11px] font-medium text-slate-400 flex items-center justify-between">
               <span>Total Volume</span>
-              <span className="text-cyan-400 font-mono">INR</span>
+              <span className="text-cyan-400 font-mono text-[10px]">INR</span>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-emerald-400 font-mono mt-1">
+            <div className="text-lg sm:text-2xl font-extrabold text-emerald-400 font-mono mt-1">
               ₹{totalVolume.toLocaleString()}
             </div>
-            <div className="text-[10px] text-slate-500 mt-0.5">Aggregate flow across graph</div>
+            <div className="text-[9px] sm:text-[10px] text-slate-500 mt-0.5 truncate">Aggregate network flow</div>
           </div>
         </div>
       </section>
@@ -665,10 +665,10 @@ function App() {
         {/* Right Section: Workspace Panels with Clean Tab Navigation (col-span-5) */}
         <div className="col-span-1 lg:col-span-5 flex flex-col bg-slate-900/80 border border-slate-700/80 rounded-xl overflow-hidden shadow-2xl">
           {/* Tab Navigation Header */}
-          <div className="flex items-center border-b border-slate-700/80 bg-slate-800/80 p-1 gap-1 text-xs shrink-0 overflow-x-auto">
+          <div className="grid grid-cols-2 sm:flex items-center border-b border-slate-700/80 bg-slate-800/80 p-1 gap-1 text-xs shrink-0">
             <button
               onClick={() => setActiveTab('algorithms')}
-              className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 px-2 sm:px-2.5 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5 text-[11px] sm:text-xs ${
                 activeTab === 'algorithms'
                   ? 'bg-emerald-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
@@ -678,7 +678,7 @@ function App() {
             </button>
             <button
               onClick={() => setActiveTab('transactions')}
-              className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 px-2 sm:px-2.5 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5 text-[11px] sm:text-xs ${
                 activeTab === 'transactions'
                   ? 'bg-emerald-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
@@ -688,7 +688,7 @@ function App() {
             </button>
             <button
               onClick={() => setActiveTab('datastructures')}
-              className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 px-2 sm:px-2.5 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5 text-[11px] sm:text-xs ${
                 activeTab === 'datastructures'
                   ? 'bg-emerald-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
@@ -698,7 +698,7 @@ function App() {
             </button>
             <button
               onClick={() => setActiveTab('findings')}
-              className={`flex-1 min-w-[90px] py-2 px-2.5 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 px-2 sm:px-2.5 rounded-lg font-semibold transition-all text-center flex items-center justify-center gap-1.5 text-[11px] sm:text-xs ${
                 activeTab === 'findings'
                   ? 'bg-emerald-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
@@ -712,7 +712,7 @@ function App() {
           </div>
 
           {/* Tab Content Body */}
-          <div className="flex-1 p-3.5 overflow-y-auto max-h-[calc(100vh-230px)] scrollbar-thin scrollbar-thumb-slate-700">
+          <div className="flex-1 p-3 sm:p-3.5 overflow-y-auto lg:max-h-[calc(100vh-230px)] scrollbar-thin scrollbar-thumb-slate-700">
             {activeTab === 'transactions' && (
               <EdgeInputPanel
                 transactions={transactions}

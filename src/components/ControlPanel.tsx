@@ -140,11 +140,11 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       </div>
 
       {/* Animation Speed Controller */}
-      <div className="flex items-center justify-between bg-slate-900/70 border border-slate-800 rounded-lg px-3 py-2 text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-1.5 bg-slate-900/70 border border-slate-800 rounded-lg px-2.5 sm:px-3 py-2 text-xs">
         <span className="text-slate-400 flex items-center gap-1">
           <span>⏱️</span> Step Delay:
         </span>
-        <div className="flex items-center space-x-1">
+        <div className="flex flex-wrap items-center gap-1">
           {[
             { label: 'Ultra (30ms)', val: 30 },
             { label: 'Fast (80ms)', val: 80 },
@@ -208,11 +208,11 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
         {/* Step controls for BFS */}
         <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800 space-y-2">
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-1.5 text-xs">
             <span className="text-slate-400 font-mono text-[11px]">
               Step: {bfsStepIndex} / {Math.max(0, bfsTotalSteps - 1)}
             </span>
-            <div className="flex items-center space-x-1">
+            <div className="flex flex-wrap items-center gap-1">
               <button
                 type="button"
                 onClick={onPrevBFS}
@@ -282,11 +282,11 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
         {/* Step controls for DFS */}
         <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800 space-y-2">
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-1.5 text-xs">
             <span className="text-slate-400 font-mono text-[11px]">
               Step: {dfsStepIndex} / {Math.max(0, dfsTotalSteps - 1)}
             </span>
-            <div className="flex items-center space-x-1">
+            <div className="flex flex-wrap items-center gap-1">
               <button
                 type="button"
                 onClick={onPrevDFS}

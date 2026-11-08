@@ -256,8 +256,8 @@ export const EdgeInputPanel: React.FC<EdgeInputPanelProps> = ({
       {/* Mode 1: Table Editor */}
       {inputMode === 'table' ? (
         <div className="space-y-2">
-          <div className="max-h-56 overflow-y-auto border border-slate-700/80 rounded-lg bg-slate-900/60 scrollbar-thin scrollbar-thumb-slate-700">
-            <table className="w-full text-xs text-left">
+          <div className="max-h-60 overflow-y-auto overflow-x-auto border border-slate-700/80 rounded-lg bg-slate-900/60 scrollbar-thin scrollbar-thumb-slate-700">
+            <table className="min-w-[420px] w-full text-xs text-left">
               <thead className="bg-slate-800/90 text-slate-300 sticky top-0 border-b border-slate-700 z-10">
                 <tr>
                   <th className="py-1.5 px-2 font-semibold">#</th>
@@ -316,7 +316,7 @@ export const EdgeInputPanel: React.FC<EdgeInputPanelProps> = ({
             </table>
           </div>
 
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
             <button
               type="button"
               onClick={handleAddRow}

@@ -173,7 +173,7 @@ export const AlgorithmStatusPanel: React.FC<AlgorithmStatusPanelProps> = ({
                 </div>
 
                 {/* Directed Sequence: A2 → A3 → A4 → A2 */}
-                <div className="bg-slate-950/80 p-2 rounded border border-slate-800 flex items-center justify-between font-mono">
+                <div className="bg-slate-950/80 p-2 rounded border border-slate-800 flex flex-wrap items-center justify-between gap-1 font-mono">
                   <span className="text-emerald-400 font-bold text-xs">{ring.directedSequence}</span>
                   <span className="text-amber-300 font-bold text-xs">₹{ring.totalAmount.toLocaleString()} Cycle Volume</span>
                 </div>

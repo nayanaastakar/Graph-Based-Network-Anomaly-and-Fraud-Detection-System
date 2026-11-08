@@ -379,27 +379,27 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
   return (
     <div className="flex flex-col h-full bg-slate-900/90 rounded-xl border border-slate-700/80 overflow-hidden shadow-2xl">
       {/* Top Graph Toolbar */}
-      <div className="flex flex-wrap items-center justify-between px-4 py-2.5 bg-slate-800/90 border-b border-slate-700/80 gap-2">
+      <div className="flex flex-wrap items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-800/90 border-b border-slate-700/80 gap-2">
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-semibold text-emerald-400 flex items-center gap-1.5">
+          <span className="text-xs sm:text-sm font-semibold text-emerald-400 flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             Network Topology
           </span>
-          <span className="text-xs px-2 py-0.5 rounded bg-slate-700/60 text-slate-300 font-mono">
+          <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded bg-slate-700/60 text-slate-300 font-mono">
             {data.nodes.length} Nodes • {data.edges.length} Edges
           </span>
         </div>
 
         {/* Toolbar Controls */}
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
           {/* Layout Selector */}
-          <div className="flex items-center space-x-1 bg-slate-900/80 border border-slate-700 rounded-lg p-0.5 text-xs">
+          <div className="flex items-center space-x-0.5 sm:space-x-1 bg-slate-900/80 border border-slate-700 rounded-lg p-0.5 text-[11px] sm:text-xs">
             <button
               onClick={() => {
                 setLayoutName('cose');
                 if (cyRef.current) runLayout(cyRef.current, 'cose');
               }}
-              className={`px-2 py-1 rounded transition-colors ${
+              className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded transition-colors ${
                 layoutName === 'cose' ? 'bg-emerald-600 text-white font-medium' : 'text-slate-400 hover:text-slate-200'
               }`}
               title="Force-Directed Layout (Physics-based spacing)"
@@ -411,7 +411,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
                 setLayoutName('concentric');
                 if (cyRef.current) runLayout(cyRef.current, 'concentric');
               }}
-              className={`px-2 py-1 rounded transition-colors ${
+              className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded transition-colors ${
                 layoutName === 'concentric' ? 'bg-emerald-600 text-white font-medium' : 'text-slate-400 hover:text-slate-200'
               }`}
               title="Concentric Circles Layout (Hierarchy by Degree)"
@@ -423,7 +423,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
                 setLayoutName('circle');
                 if (cyRef.current) runLayout(cyRef.current, 'circle');
               }}
-              className={`px-2 py-1 rounded transition-colors ${
+              className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded transition-colors ${
                 layoutName === 'circle' ? 'bg-emerald-600 text-white font-medium' : 'text-slate-400 hover:text-slate-200'
               }`}
               title="Circular Ring Layout"
@@ -433,36 +433,36 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
           </div>
 
           {/* Zoom & Fit Buttons */}
-          <div className="flex items-center space-x-1 bg-slate-900/80 border border-slate-700 rounded-lg p-0.5 text-xs">
+          <div className="flex items-center space-x-0.5 sm:space-x-1 bg-slate-900/80 border border-slate-700 rounded-lg p-0.5 text-[11px] sm:text-xs">
             <button
               onClick={handleZoomIn}
-              className="px-2 py-1 text-slate-300 hover:text-white hover:bg-slate-700 rounded"
+              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-slate-300 hover:text-white hover:bg-slate-700 rounded"
               title="Zoom In"
             >
               +
             </button>
             <button
               onClick={handleZoomOut}
-              className="px-2 py-1 text-slate-300 hover:text-white hover:bg-slate-700 rounded"
+              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-slate-300 hover:text-white hover:bg-slate-700 rounded"
               title="Zoom Out"
             >
               -
             </button>
             <button
               onClick={handleFit}
-              className="px-2 py-1 text-slate-300 hover:text-white hover:bg-slate-700 rounded font-medium"
+              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-slate-300 hover:text-white hover:bg-slate-700 rounded font-medium"
               title="Fit to Screen"
             >
               Fit
             </button>
             <button
               onClick={handleReset}
-              className="px-2 py-1 text-slate-300 hover:text-white hover:bg-slate-700 rounded"
+              className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-slate-300 hover:text-white hover:bg-slate-700 rounded"
               title="Reset View & Layout"
             >
               Reset
             </button>
-            <span className="px-2 py-1 text-slate-400 font-mono text-[11px] border-l border-slate-700">
+            <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-slate-400 font-mono text-[10px] sm:text-[11px] border-l border-slate-700">
               {currentZoom}%
             </span>
           </div>
@@ -535,14 +535,14 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
 
       {/* Selected Account Inspector Drawer */}
       {selectedNodeData && (
-        <div className="border-t border-blue-500/40 bg-slate-950/95 p-3.5 backdrop-blur-md transition-all">
-          <div className="flex items-center justify-between mb-2.5">
-            <div className="flex items-center space-x-3">
-              <span className="w-3 h-3 rounded-full bg-blue-500 animate-ping"></span>
-              <h4 className="text-sm font-bold text-white font-mono flex items-center gap-2">
+        <div className="border-t border-blue-500/40 bg-slate-950/95 p-3 sm:p-3.5 backdrop-blur-md transition-all">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2 sm:mb-2.5">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping"></span>
+              <h4 className="text-xs sm:text-sm font-bold text-white font-mono flex flex-wrap items-center gap-1.5 sm:gap-2">
                 Account {selectedNodeData.id}
                 <span
-                  className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                  className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-bold ${
                     selectedNodeData.risk === 'high'
                       ? 'bg-red-900/60 text-red-300 border border-red-600'
                       : selectedNodeData.risk === 'medium'
@@ -553,7 +553,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
                   {selectedNodeData.risk.toUpperCase()} RISK ({selectedNodeData.riskScore.toFixed(1)} pts)
                 </span>
                 {selectedNodeData.clusterSize >= 2 && (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-700">
+                  <span className="px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-700">
                     SCC Ring Member (Size: {selectedNodeData.clusterSize})
                   </span>
                 )}
@@ -569,7 +569,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
           </div>
 
           {/* Mathematical score derivation */}
-          <div className="mb-2 px-2.5 py-1 rounded bg-slate-900/90 border border-slate-800 text-[11px] font-mono text-slate-300 flex flex-wrap items-center justify-between gap-1">
+          <div className="mb-2 px-2.5 py-1 rounded bg-slate-900/90 border border-slate-800 text-[10px] sm:text-[11px] font-mono text-slate-300 flex flex-wrap items-center justify-between gap-1 break-words">
             <span>
               <strong className="text-slate-400">Score Derivation:</strong> ({selectedNodeData.outDegree} Out × 2) + ({selectedNodeData.clusterSize} SCC Cluster × 3) + (₹{selectedNodeData.outAmount.toLocaleString()} / 1000) = <strong className="text-amber-400">{selectedNodeData.riskScore.toFixed(1)} pts</strong>
             </span>
