@@ -58,13 +58,6 @@
 
 ---
 
-### 6. Responsive Tablet Experience (768 × 1024)
-*Fluid tablet portrait view ensuring seamless algorithm execution, graph interactions, and zero horizontal page overflow.*
-
-![Tablet Viewport Experience](docs/images/06_tablet_responsive_view.png)
-
----
-
 ## 🛠️ Technology Stack
 
 | Layer | Technologies |
@@ -155,8 +148,7 @@ Graph-Based-Network-Anomaly-and-Fraud-Detection-System/
 │       ├── 02_account_inspector_drawer.png
 │       ├── 03_fraud_rings_and_findings.png
 │       ├── 04_dsa_internals_and_max_heap.png
-│       ├── 05_transaction_management.png
-│       └── 06_tablet_responsive_view.png
+│       └── 05_transaction_management.png
 ├── public/
 │   ├── favicon.ico
 │   └── index.html                    # HTML5 template with subpixel typography
